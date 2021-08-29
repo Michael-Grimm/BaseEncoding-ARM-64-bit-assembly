@@ -1,0 +1,233 @@
+.text
+
+//Input/Output from/to calling C functions:
+io0      .req x0
+base0    .req x0
+buffer0  .req x0
+result   .req x0
+value0   .req x0
+
+io1      .req x1
+base1    .req x1
+buffer1  .req x1
+
+
+io2      .req x2
+base2    .req x2
+buffer2  .req x2
+
+io3      .req x3
+
+//Intermediate values in routines:
+alphabet .req x4
+buffer   .req x5
+count    .req x6
+product  .req x7
+quotient .req x8
+radix    .req x9
+rest     .req x10
+restw    .req w10
+value    .req x11
+xtemp    .req x12
+wtemp    .req w12
+
+
+/**
+ * A macro-pair that reduces the boilerplate of function declaration
+ * Creates a global function that preserves the frame pointer and procedure 
+ * link register. After FUNCTION there must allways follow an END.
+ */
+.macro FUNCTION function_name
+ 	.type \function_name, %function
+    .global \function_name
+	\function_name:
+		stp x29, x30, [sp, #-16]!
+.endm
+
+.macro END function_name
+		ldp x29, x30, [sp], #16
+        ret
+        .size \function_name, (. - \function_name) 
+.endm
+ 
+/**
+ * The macro ASCIIZ_LENGTH 
+ * determines the length of a zero-terminated character array
+ * The result is in register 'count'
+ */
+.macro ASCIIZ_LENGTH chararray
+    mov buffer, \chararray
+    mov count, xzr
+	loopasciiz\@:
+	ldrb wtemp, [buffer], #1
+    and  wtemp, wtemp, #0xff
+    cbz  wtemp, endasciizlength\@ //terminating zero?
+    add count, count, #1
+    b loopasciiz\@
+    endasciizlength\@:
+.endm
+
+
+/**
+ * int asciiz_length(char *array)
+ * The function asciiz_length
+ * determines the length of a zero terminated char-array.
+ * Input: address of char-array
+ * Returns the length of the string excluding the terminating zero.
+ */
+FUNCTION asciiz_length
+    ASCIIZ_LENGTH io0
+    mov result, count
+END asciiz_length
+
+
+/**
+ * Macros and functions for converting a long long integer into an
+ * ASCII-string for a given base (radix)
+ */
+
+
+/**
+ * Macro COUNT_DIGITS 
+ * calculates the number of ASCII-digits
+ * necessary for representing a long long integer in a given base.
+ * Input: long long integer in register 'integer', base in register 'base'
+ * result in count
+ */
+.macro COUNT_DIGITS integer base
+        mov value, \integer
+	    mov count, xzr 
+		loop_dec\@:
+		add count, count, #1
+		udiv value, value, \base
+	    cbnz value, loop_dec\@
+.endm
+
+
+
+
+/**
+ * int count_decimals(unsigned long long val);
+ *  result                          value0
+ * Returns the number of decimal characters for val.
+ * Example: 0xFFFF = 65535 in decimal => 5 chars.
+ * 0xabbafefedeadcafe = 12374483296764939006 => 20 chars.
+ */
+FUNCTION count_decimals
+        mov radix, #10
+	    COUNT_DIGITS value0 radix
+        mov result, count
+END count_decimals
+
+
+
+/**
+ * int count_chars(unsigned long long val, int base);
+    result                value0             base1
+ * Returns the number of necessary ascii characters for representing val in the 
+ * given base (radix).
+ * Examples: 0xFFFF = 65535 in decimal => 5 chars.
+             0x177  = 567   in octal   => 3 chars
+ *           0xabbafefedeadcafe = 12374483296764939006 => 20 chars.
+ */
+FUNCTION count_chars
+	    COUNT_DIGITS value0 base1
+        mov result, count
+END count_chars
+
+
+
+.section .rodata
+//Base 85 encoding (RFC 1924)
+base85alphabet: .ascii "0123456789ABCDEFGHIJKLMNOPQRSTUV" //
+        .ascii "WXYZabcdefghijklmnopqrstuvwxyz!#"
+        .ascii "$%&()*+-;<=>?@^_`{|}~\0\0\0\0\0\0\0\0\0\0\0" 
+.text
+
+
+
+/**
+ * Macro ENCODE
+ * encodes a long long value into an ASCII-String from the alphabet of 
+ * the given base.
+ * Expects the value in register 'value0', the base in register 'base1 and
+ * the char-array in register 'buffer2'
+ * Result in register 'result'
+ */
+.macro ENCODE
+       adr alphabet, base85alphabet 
+       COUNT_DIGITS value0 base1 
+       add buffer, buffer2, count    
+       conversionloop\@:
+       udiv quotient, value0, base1 
+       mul  product, quotient, base1 
+       sub  rest, value0, product    
+       ldrb restw, [alphabet, restw, uxtw] //convert e.g. rest=11 => rest='b'
+       strb restw, [buffer, #-1]!
+       mov  value0, quotient     //quotient is new 'value'
+       cbnz value0, conversionloop\@ 
+       mov result, count
+.endm 
+
+
+/**
+ * int encode(long long value, int base, char *buf);
+ * writes the value as ascii string in the given base (radix) into buf.
+ * base can have a value between 2 and 85.
+ * buf must have a proper length to accommodate the ascii-string (and a 
+ * terminating zero if needed):
+ * For the maximum of long long:
+ * Base 2: 64 bytes  "111111111111111111111111111111111111111111111111111111111111"
+ * Base 8: 22 bytes  "1777777777777777777777"
+ * Base 10: 20 bytes "18446744073709551615"
+ * Base 16: 16 bytes "FFFFFFFFFFFFFFFF"
+ * Base 32 ext hex: 13 bytes "FVVVVVVVVVVVV"
+ * Base 85: 10 bytes "_sw2=@*|O0" 
+ * See also: int count_chars(long long val, int base);
+ * This function uses the Base 85 alphabet (RFC 1924) which includes the 
+ * base32hex (base 32 extended hex) alphabet (RFC 2938):   
+ * 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~
+ * Returns the number of characters written to buf.
+ */
+FUNCTION encode
+       ENCODE
+END encode
+
+/**
+ * int encode_dec(long long value, char *buf);
+ writes the value as decimal string into buf.
+ buf must at least have a length of 21 bytes (20 for the max-value of u64 plus 1 für zero-termination.)
+ */
+FUNCTION encode_dec 
+       mov buffer2, buffer1
+       mov base1, #10  
+       ENCODE
+END encode_dec
+
+
+/**
+ * int encode_hex(long long value, char *buf);
+ * writes the value as hexadecimal string into buf.
+ * see: int encode(long long value, int base, char *buf);
+ */
+FUNCTION encode_hex 
+       mov buffer2, buffer1
+       mov base1, #16  
+       ENCODE
+END encode_hex 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
