@@ -35,21 +35,21 @@ int count_decimals(unsigned long long val);
  * 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~
  * Returns the number of characters written to buf.
  */
- int encode(long long value, int base, char *buf);
+ int encode(unsigned long long value, int base, char *buf);
  
 /**
  * int encode_dec(long long value, char *buf);
  * writes the value as decimal string into buf.
  * see: int encode(long long value, int base, char *buf);
  */
-int encode_dec(long long value, char *buf); 
+int encode_dec(unsigned long long value, char *buf); 
 
 /**
  * int encode_hex(long long value, char *buf);
  * writes the value as hexadecimal string into buf.
  * see: int encode(long long value, int base, char *buf);
  */
-int encode_hex(long long value, char *buf); 
+int encode_hex(unsigned long long value, char *buf); 
 
 /**
  * int asciiz_length(char *array)
