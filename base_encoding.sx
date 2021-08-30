@@ -19,17 +19,22 @@ buffer2  .req x2
 io3      .req x3
 
 //Intermediate values in routines:
-alphabet .req x4
-buffer   .req x5
-count    .req x6
-product  .req x7
-quotient .req x8
-radix    .req x9
-rest     .req x10
-restw    .req w10
-value    .req x11
-xtemp    .req x12
-wtemp    .req w12
+asciichar  .req x4
+wasciichar .req w4
+alphabet   .req x5
+buffer     .req x6
+count      .req x7
+product    .req x8
+wproduct   .req w8
+quotient   .req x9
+radix      .req x10
+rest       .req x11
+restw      .req w11
+value      .req x12
+temp      .req x13
+wtemp      .req w13
+temp2      .req x14
+
 
 
 /**
@@ -76,7 +81,7 @@ wtemp    .req w12
  * Returns the length of the string excluding the terminating zero.
  */
 FUNCTION asciiz_length
-    ASCIIZ_LENGTH io0
+    ASCIIZ_LENGTH buffer0
     mov result, count
 END asciiz_length
 
@@ -139,16 +144,17 @@ END count_chars
 
 .section .rodata
 //Base 85 encoding (RFC 1924)
-base85alphabet: .ascii "0123456789ABCDEFGHIJKLMNOPQRSTUV" //
-        .ascii "WXYZabcdefghijklmnopqrstuvwxyz!#"
-        .ascii "$%&()*+-;<=>?@^_`{|}~\0\0\0\0\0\0\0\0\0\0\0" 
+base85alphabet: .ascii "0123456789ABCDEFGHIJKLMNOPQRSTUV" //32 bytes
+                .ascii "WXYZabcdefghijklmnopqrstuvwxyz!#" //32 bytes
+                .ascii "$%&()*+-;<=>?@^_`{|}~"            //21 + ...
+                .skip 11, 0                               //11 = 32 bytes
 .text
 
 
 
 /**
  * Macro ENCODE
- * encodes a long long value into an ASCII-String from the alphabet of 
+ * encodes a long long value into an ASCIIZ-String from the alphabet of 
  * the given base.
  * Expects the value in register 'value0', the base in register 'base1 and
  * the char-array in register 'buffer2'
@@ -219,12 +225,94 @@ END encode_hex
 
 
 
+.section .rodata
+/**
+ASCII characters and their numerical value in base 85
+    0123456789   0- 9
+    ABCDEFGHIJ  10-19
+    KLMNOPQRST  20-29
+    UVWXYZabcd  30-39
+    efghijklmn  40-49 
+    opqrstuvwx  50-59
+    yz!#$%&()*  60-69
+    +-;<=>?@^_  70-79
+    `{|}~       80-84
+*/
+/**
+ASCII Table with translation into the numerical values of base 85
+*/               
+ascii85toByte:                                          // indices  
+.space 32, -1 //32 not printable ASCII control characters   0-31   
+//         !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /     32-47
+.byte  -1,62,-1,63,64,65,66,-1,67,68,69,70,-1,71,-1,-1      
 
+//      0  1  2  3  4  5  6  7  8  9  :  ;  <  =  >  ?     48-63    
+.byte   0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,72,73,74,75,76  
 
+//      @  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O     64-79
+.byte   77,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24
 
+//      P  Q  R  S  T  U  V  W  X  Y  Z  [  \  ]  ^  _     80-95
+.byte   25,26,27,28,29,30,31,32,33,34,35,-1,-1,-1,78,79
 
+//       `  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o    96-111
+.byte   80,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50
 
+//       p  q  r  s  t  u  v  w  x  y  z  {  |  }  ~ DEL  112-127
+.byte   51,52,53,54,55,56,57,58,59,60,61,81,82,83,84,-1   //128 bytes
+//     
+.skip 128, -1                                             //256 bytes 
+      
+.text
 
+/**
+ * Macro DECODE
+ * decodes an ASCIIZ-String with correct characters from the base 85 alphabet 
+ * into a long long integer. 
+ * Expects the address of the  string buffer in register 'buffer0'
+ * the base in register 'base1'.
+ * Result in register 'result'. A negative value indicates an empty string or a 
+ * wrong ASCII char
+ * which is not included in the base85 alphabet.
+ */
+.macro DECODE
+       ASCIIZ_LENGTH buffer0 
+       cbz count, invalid_value\@   //goto end if count is 0
+       adr alphabet, ascii85toByte 
+       mov temp, #1   //used for multiplication with the base
+       mov value, xzr  //accumulator for the numerical value
+       add buffer, buffer0, count  
+
+       conversionloop\@:
+		   cbz count, end_decode\@         
+		   ldrb wasciichar, [buffer, #-1]! //ascii char from end of buffer
+		   cbz wasciichar, end_decode\@    //goto end if ascii char is NUL
+		   ldrb wasciichar, [alphabet, wasciichar, uxtw] //num value of ascii char
+		   cmp wasciichar, 0xff //wrong value if == 0xff (-1) 
+		   beq invalid_value\@ 
+		   cmp asciichar, base1 //wrong value of character if >= base
+		   bge invalid_value\@                  
+		   mul  product, asciichar, temp 
+		   add  value, value, product
+		   mul temp, temp, base1
+		   sub count, count, #1
+       b conversionloop\@ 
+
+       b end_decode\@
+       invalid_value\@:
+       mov value, xzr
+       mvn value, value  
+       end_decode\@:
+       mov result, value
+.endm 
+
+/**
+ * long long decode(char *asciiz, int base);
+ *
+ */
+FUNCTION decode
+       DECODE
+END decode
 
 
 

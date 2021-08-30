@@ -52,6 +52,18 @@ int encode_dec(unsigned long long value, char *buf);
 int encode_hex(unsigned long long value, char *buf); 
 
 /**
+ * long long decode(char *asciiz, int base);
+ * decodes an ASCIIZ string containing valid characters for the given base.
+ * See: encode();
+ * returns the integer or -1 if the string is empty, contains invalid characters
+ * (e.g. [ ] , ' " ) or if the character is outside the range of the given base
+ * (e.g. 8, 9 in base 8)
+ */
+long long decode(char *asciiz, int base);
+
+
+
+/**
  * int asciiz_length(char *array)
  * The function asciiz_length
  * determines the length of a zero terminated char-array.
@@ -59,4 +71,7 @@ int encode_hex(unsigned long long value, char *buf);
  * Returns the length of the string excluding the terminating zero.
  */
 int asciiz_length(char *array);
+
+
+
  
