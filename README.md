@@ -1,5 +1,5 @@
 # BaseEncoding-ARM-64-bit-assembly
-ARM-64 implementation of encoding/decoding  64-bit integers (unsigned long long int) from/to zero-terminated ASCII strings for a given base (base 2 ... base 85)
+ARM-64 assembly implementation of encoding/decoding  64-bit integers (unsigned long long int) from/to zero-terminated ASCII strings for a given base (base 2 ... base 85)
 
 Uses the Base 85 alphabet (RFC 1924) which includes the base32hex (base 32 extended hexadecimal) alphabet (RFC 2938):   
 
