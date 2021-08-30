@@ -18,18 +18,29 @@ int failed_tests = 0;
  */
 #define TEST_STRING_EQUALS(expected, actual) \
 	if(strcmp(expected, actual) != 0){ \
-		printf("%s, line %d: Expected %s, but was %s\n", __FILE__, __LINE__, expected, actual); \
+		printf("%s, line %d: Expected %s, but was %s\n", __FUNCTION__, __LINE__, expected, actual); \
 		failed_tests += 1; \
 	}else{ \
 		passed_tests += 1; \
 	}
 
 /**
- * Tests two strings for equality.
+ * Tests two ints for equality.
  */
 #define TEST_INT_EQUALS(expected, actual) \
 	if(expected != actual){ \
-		printf("%s, line %d: Expected %d, but was %d\n", __FILE__, __LINE__, expected, actual); \
+		printf("%s, line %d: Expected %d, but was %d\n", __FUNCTION__, __LINE__, expected, actual); \
+		failed_tests += 1; \
+	}else{ \
+		passed_tests += 1; \
+	}
+
+/**
+ * Tests two long long ints for equality.
+ */
+#define TEST_LONGLONG_EQUALS(expected, actual) \
+	if(expected != actual){ \
+		printf("%s, line %d: Expected %lld, but was %lld\n", __FUNCTION__, __LINE__, expected, actual); \
 		failed_tests += 1; \
 	}else{ \
 		passed_tests += 1; \

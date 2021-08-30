@@ -389,53 +389,332 @@ void test_encode_base85_2(){
 }
 
 
+
+void test_decode_1(){
+       char asciiz[] = "20DEADBEEF";
+       int base = 16;
+       long long exp_val = 0x20deadbeef;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_2(){
+       char asciiz[] = "A";
+       int base = 16;
+       long long exp_val = 0xA;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_3(){
+       char asciiz[] = "A0B";
+       int base = 16;
+       long long exp_val = 0xA0B;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_4(){
+       char asciiz[] = "20";
+       int base = 10;
+       long long exp_val = 20;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_5(){
+       char asciiz[] = "FFFFFFFFFFFFFFFF";
+       int base = 16;
+       long long exp_val = 0xFFFFFFFFFFFFFFFF;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+
+void test_decode_6(){
+       char asciiz[] = "123456789012345\0";
+       int base = 10;
+       long long exp_val = 123456789012345;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_7(){
+       char asciiz[] = "123456789012345";
+       int base = 10;
+       long long exp_val = 123456789012345;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_8(){
+       char asciiz[] = "18446744073709551615";
+       int base = 10;
+       long long exp_val = 0xffffffffffffffff;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_9(){
+       char asciiz[] = "0";
+       int base = 10;
+       long long exp_val = 0;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+
+void test_decode_10(){
+       char asciiz[] = "1";
+       int base = 10;
+       long long exp_val = 1;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+
+void test_decode_11(){
+       char asciiz[] = "FFFFFFFFFFFFFFFF";
+       int base = 16;
+       long long exp_val = 0xffffffffffffffff;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_12(){
+       char asciiz[] = "ABBADEADBABECAFE";
+       int base = 16;
+       long long exp_val = 0xabbadeadbabecafe;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_13(){
+       char asciiz[] = "";
+       int base = 16;
+       long long exp_val = -1;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+
+void test_decode_14(){
+       char asciiz[] = "1777777777777777777777";
+       int base = 8;
+       long long exp_val = 0xffffffffffffffff;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_15(){
+       char asciiz[] = "33333333333333333333333333333333";
+       int base = 4;
+       long long exp_val = 0xffffffffffffffff;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_16(){
+       char asciiz[] = "11112220022122120101211020120210210211220";
+       int base = 3;
+       long long exp_val = 0xffffffffffffffff;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_17(){
+       char asciiz[] = "1111111111111111111111111111111111111111111111111111111111111111";
+       int base = 2;
+       long long exp_val = 0xffffffffffffffff;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_18(){
+       char asciiz[] = "FVVVVVVVVVVVV";
+       int base = 32;
+       long long exp_val = 0xffffffffffffffff;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_19(){
+       char asciiz[] = "ANEMULMTBTINU";
+       int base = 32;
+       long long exp_val = 0xabbadeadbabecafe;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_20(){
+       char asciiz[] = "_sw2=@*|O0";
+       int base = 85;
+       long long exp_val = 0xffffffffffffffff;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_21(){
+       char asciiz[] = "raKVdv(}ws";
+       int base = 85;
+       long long exp_val = 0xabbadeadbabecafe;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_22(){
+       char asciiz[] = "[";
+       int base = 10;
+       long long exp_val = -1;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_23(){
+       char asciiz[] = "1234]6789";
+       int base = 10;
+       long long exp_val = -1;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_24(){
+       char asciiz[] = "1234[6789";
+       int base = 10;
+       long long exp_val = -1;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_25(){
+       char asciiz[] = "1234\\6789";
+       int base = 10;
+       long long exp_val = -1;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_26(){
+       char asciiz[] = "1234A6789";
+       int base = 10;
+       long long exp_val = -1;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_27(){
+       char asciiz[] = "1234k6789";
+       int base = 16;
+       long long exp_val = -1;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_28(){
+       char asciiz[] = "1234678";
+       int base = 8;
+       long long exp_val = -1;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_29(){
+       char asciiz[] = "11201";
+       int base = 2;
+       long long exp_val = -1;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
+void test_decode_30(){
+       char asciiz[] = "abcdef";//must be upper case!
+       int base = 16;
+       long long exp_val = -1;
+       long long val = decode(asciiz, base);
+       TEST_LONGLONG_EQUALS(exp_val,val)
+}
+
 int test_all(){
-	test_asciiz_length_1();
-	test_asciiz_length_2();
-	test_asciiz_length_3();
-	test_asciiz_length_4();
-	test_asciiz_length_5();
-	test_asciiz_length_6();
-	test_asciiz_length_7();
-	test_asciiz_length_8();
-	test_asciiz_length_9();
-	test_asciiz_length_10();
-	test_count_decimals_1();
-	test_count_decimals_2();
-	test_count_decimals_3();
-	test_count_decimals_4();
-	test_count_decimals_5();
-	test_count_decimals_6();
-	test_count_decimals_7();
-	test_count_decimals_8();
-	test_encode_dec_1();
-	test_encode_dec_2();
-	test_encode_dec_3();
-	test_encode_dec_4();
-	test_encode_dec_5();
-	test_encode_dec_6();
-	test_encode_hex_1();
-	test_encode_hex_2();
-	test_encode_hex_3();	
-	test_encode_base16_1();
-	test_encode_base16_2();
-	test_encode_base16_3();
-	test_encode_base10();
-	test_encode_base8();
-	test_encode_base4();
-	test_encode_base3();
-	test_encode_base2();
-	test_encode_base32_ext_hex_alphabet();
-	test_encode_base32_ext_hex_alphabet_2();
-	test_encode_base85_1();
-	test_encode_base85_2();
+ test_asciiz_length_1();
+ test_asciiz_length_2();
+ test_asciiz_length_3();
+ test_asciiz_length_4();
+ test_asciiz_length_5();
+ test_asciiz_length_6();
+ test_asciiz_length_7();
+ test_asciiz_length_8();
+ test_asciiz_length_9();
+ test_asciiz_length_10();
+ test_count_decimals_1();
+ test_count_decimals_2();
+ test_count_decimals_3();
+ test_count_decimals_4();
+ test_count_decimals_5();
+ test_count_decimals_6();
+ test_count_decimals_7();
+ test_count_decimals_8();
+ test_encode_dec_1();
+ test_encode_dec_2();
+ test_encode_dec_3();
+ test_encode_dec_4();
+ test_encode_dec_5();
+ test_encode_dec_6();
+ test_encode_base16_1();
+ test_encode_base16_2();
+ test_encode_base16_3();
+ test_encode_hex_1();
+ test_encode_hex_2();
+ test_encode_hex_3();
+ test_encode_base10();
+ test_encode_base8();
+ test_encode_base4();
+ test_encode_base3();
+ test_encode_base2();
+ test_encode_base32_ext_hex_alphabet();
+ test_encode_base32_ext_hex_alphabet_2();
+ test_encode_base85_1();
+ test_encode_base85_2();
+ test_decode_1();
+ test_decode_2();
+ test_decode_3();
+ test_decode_4();
+ test_decode_5();
+ test_decode_6();
+ test_decode_7();
+ test_decode_8();
+ test_decode_9();
+ test_decode_10();
+ test_decode_11();
+ test_decode_12();
+ test_decode_13();
+ test_decode_14();
+ test_decode_15();
+ test_decode_16();
+ test_decode_17();
+ test_decode_18();
+ test_decode_19();
+ test_decode_20();
+ test_decode_21();
+ test_decode_22();
+ test_decode_23();
+ test_decode_24();
+ test_decode_25();
+ test_decode_26();
+ test_decode_27();
+ test_decode_28();
+ test_decode_29();
+ test_decode_30();
+
 }
 
 int main(){
+ 
       printf("\nTesting file %s:\n", __FILE__);
       PRINT_TEST_FUNCTIONS
       test_all();    
       PRINT_TEST_RESULTS
+ 
+      
 }
 
 
