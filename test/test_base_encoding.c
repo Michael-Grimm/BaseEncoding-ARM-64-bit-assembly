@@ -2,6 +2,7 @@
 #include "test.h"
 
 
+
 void test_asciiz_length_1(){
        char arr[] = "abcde\0";
        int len = asciiz_length(arr);
@@ -142,8 +143,8 @@ void test_count_decimals_8(){
 
 void test_encode_dec_1(){
 	   long long val = 123456789012345; //=> 15 chars.
-	   char exp_str[] = "123456789012345";
-       char buf[21] = {0};
+	   char exp_str[] = "123456789012345"; //15 chars plus terminating zero
+       char buf[21] = {0}; 
        int len = encode_dec(val, buf);
        int exp_len =15;
      TEST_STRING_EQUALS(exp_str, buf)
@@ -710,7 +711,7 @@ int test_all(){
 int main(){
  
       printf("\nTesting file %s:\n", __FILE__);
-      PRINT_TEST_FUNCTIONS
+     // PRINT_TEST_FUNCTIONS  //for updating the function test_all()
       test_all();    
       PRINT_TEST_RESULTS
  
