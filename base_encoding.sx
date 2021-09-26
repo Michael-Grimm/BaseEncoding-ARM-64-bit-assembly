@@ -1,5 +1,6 @@
 .text
 
+//Aliases of registers
 //Input/Output from/to calling C functions:
 io0      .req x0
 base0    .req x0
@@ -11,12 +12,10 @@ io1      .req x1
 base1    .req x1
 buffer1  .req x1
 
-
-io2      .req x2
 base2    .req x2
 buffer2  .req x2
 
-io3      .req x3
+
 
 //Intermediate values in routines:
 asciichar  .req x4
@@ -143,11 +142,13 @@ END count_chars
 
 
 .section .rodata
-//Base 85 encoding (RFC 1924)
+/**
+	Base 85 alphabet (RFC 1924) for encoding byte values into ASCII chars.
+*/
 base85alphabet: .ascii "0123456789ABCDEFGHIJKLMNOPQRSTUV" //32 bytes
                 .ascii "WXYZabcdefghijklmnopqrstuvwxyz!#" //32 bytes
-                .ascii "$%&()*+-;<=>?@^_`{|}~"            //21 + ...
-                .skip 11, 0                               //11 = 32 bytes
+                .ascii "$%&()*+-;<=>?@^_`{|}~"            //21 bytes
+                .skip 11, 0                               //+11 bytes => 32 bytes
 .text
 
 
@@ -157,7 +158,7 @@ base85alphabet: .ascii "0123456789ABCDEFGHIJKLMNOPQRSTUV" //32 bytes
  * encodes a long long value into an ASCIIZ-String from the alphabet of 
  * the given base.
  * Expects the value in register 'value0', the base in register 'base1 and
- * the char-array in register 'buffer2'
+ * the buffer for the resulting characters in register 'buffer2'
  * Result in register 'result'
  */
 .macro ENCODE
@@ -179,10 +180,11 @@ base85alphabet: .ascii "0123456789ABCDEFGHIJKLMNOPQRSTUV" //32 bytes
 /**
  * int encode(long long value, int base, char *buf);
  * writes the value as ascii string in the given base (radix) into buf.
- * base can have a value between 2 and 85.
+ * base can have a value between 2 and 85. The result is undefined if base < 2 
+ * or base > 85
  * buf must have a proper length to accommodate the ascii-string (and a 
  * terminating zero if needed):
- * For the maximum of long long:
+ * For the maximum of long long integer:
  * Base 2: 64 bytes  "111111111111111111111111111111111111111111111111111111111111"
  * Base 8: 22 bytes  "1777777777777777777777"
  * Base 10: 20 bytes "18446744073709551615"
@@ -202,7 +204,7 @@ END encode
 /**
  * int encode_dec(long long value, char *buf);
  writes the value as decimal string into buf.
- buf must at least have a length of 21 bytes (20 for the max-value of u64 plus 1 für zero-termination.)
+ buf should have a length of 21 bytes (20 for the max-value of u64 plus 1 für zero-termination.)
  */
 FUNCTION encode_dec 
        mov buffer2, buffer1
@@ -226,8 +228,10 @@ END encode_hex
 
 
 .section .rodata
+
 /**
-ASCII characters and their numerical value in base 85
+Dictionary for decoding ASCII chars to the numerical values of base 85.
+                Values 
     0123456789   0- 9
     ABCDEFGHIJ  10-19
     KLMNOPQRST  20-29
@@ -237,11 +241,12 @@ ASCII characters and their numerical value in base 85
     yz!#$%&()*  60-69
     +-;<=>?@^_  70-79
     `{|}~       80-84
-*/
-/**
-ASCII Table with translation into the numerical values of base 85
+Examples:
+	'A' (dec 65) -> 10
+	'$' (dec 36) -> 64
+	'=' (dec 61) -> 74
 */               
-ascii85toByte:                                          // indices  
+ascii85toByte:                                          // Indices  
 .space 32, -1 //32 not printable ASCII control characters   0-31   
 //         !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /     32-47
 .byte  -1,62,-1,63,64,65,66,-1,67,68,69,70,-1,71,-1,-1      
@@ -267,13 +272,12 @@ ascii85toByte:                                          // indices
 
 /**
  * Macro DECODE
- * decodes an ASCIIZ-String with correct characters from the base 85 alphabet 
+ * decodes an ASCIIZ-String with characters from the base 85 alphabet 
  * into a long long integer. 
  * Expects the address of the  string buffer in register 'buffer0'
  * the base in register 'base1'.
  * Result in register 'result'. A negative value indicates an empty string or a 
- * wrong ASCII char
- * which is not included in the base85 alphabet.
+ * wrong ASCII char which is not in the base85 alphabet.
  */
 .macro DECODE
        ASCIIZ_LENGTH buffer0 
@@ -308,7 +312,9 @@ ascii85toByte:                                          // indices
 
 /**
  * long long decode(char *asciiz, int base);
- *
+ * asciiz: pointer to a character buffer with zero termination.
+ * base: a value between 2 and 85.
+ * Returns the decoded value or -1 if asciiz is empty or contains invalid characters
  */
 FUNCTION decode
        DECODE
