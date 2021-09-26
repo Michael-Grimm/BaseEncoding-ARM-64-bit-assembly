@@ -5,7 +5,7 @@ Uses the Base 85 alphabet (RFC 1924) which includes the base32hex (base 32 exten
 
 **0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~**
 
-Hexadecimal characters above 9 are always expected in upper case.
+Base 16: Hexadecimal characters above 9 are always expected in upper case.
 
 
 Programmed on a RaspberryPi 4 (Broadcom BCM2711, Quad core Cortex-A72 (ARM v8) 64-bit SoC @ 1.5GHz) with  Ubuntu Mate linux.
